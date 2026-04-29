@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>せどり利益チェッカー</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Rakuten x Mercari</p>
+        <h1>せどり利益チェッカー</h1>
+        <p class="hero-copy">
+          楽天市場の仕入れ金額とメルカリの想定売価を入れるだけで、
+          利益・ROI・損益分岐売価を自動計算します。
+        </p>
+      </div>
+      <div class="hero-badge">
+        <span>自動判定</span>
+        <strong id="heroStatus">入力待ち</strong>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel auto-panel">
+        <div class="panel-heading">
+          <h2>楽天URLから自動入力</h2>
+        </div>
+        <p class="auto-copy">
+          楽天URLと楽天Web ServiceのアプリIDを入れると、商品名と価格を自動入力します。
+          メルカリの相場は人が確認し、想定売価だけ下に入力する運用です。
+        </p>
+        <div class="auto-grid">
+          <div class="auto-card">
+            <div class="section-title">
+              <h3>楽天の商品情報取得</h3>
+              <p>URLから商品名と価格を自動入力します</p>
+            </div>
+            <div class="field-group single">
+              <label for="rakutenAppId">楽天 applicationId</label>
+              <input
+                id="rakutenAppId"
+                name="rakutenAppId"
+                type="text"
+                placeholder="Rakuten Web Service の applicationId"
+              >
+              <p class="field-hint">最新APIでは accessKey も必要です。両方ともこのブラウザに保存されます。</p>
+              <p id="rakutenAppStatus" class="input-status">楽天 applicationId を入力してください。</p>
+            </div>
+            <div class="field-group single">
+              <label for="rakutenAccessKey">楽天 accessKey</label>
+              <input
+                id="rakutenAccessKey"
+                name="rakutenAccessKey"
+                type="text"
+                placeholder="Rakuten Web Service の accessKey"
+              >
+              <p class="field-hint">2026-04-01版の楽天商品検索APIで必要です。</p>
+              <p id="rakutenAccessKeyStatus" class="input-status">楽天 accessKey を入力してください。</p>
+            </div>
+            <div class="field-group single">
+              <label for="rakutenUrl">楽天商品URL</label>
+              <input
+                id="rakutenUrl"
+                name="rakutenUrl"
+                type="url"
+                placeholder="https://item.rakuten.co.jp/shop/itemcode/"
+              >
+              <p class="field-hint">URLを貼り付けるか Enter を押すと商品情報を取得できます。</p>
+              <p id="rakutenUrlStatus" class="input-status">楽天の商品URLを入力してください。</p>
+            </div>
+            <button id="fetchRakutenButton" type="button" class="primary-button">URLから商品情報を取得</button>
+          </div>
+
+          <div class="auto-card">
+            <div class="section-title">
+              <h3>メルカリ検索を楽にする</h3>
+              <p>取得した商品名を検索キーワードとして使えます</p>
+            </div>
+            <div class="field-grid mercari-filter-grid">
+              <label>
+                <span>商品状態</span>
+                <select id="mercariCondition" name="mercariCondition">
+                  <option value="">指定なし</option>
+                  <option value="新品、未使用">新品、未使用</option>
+                  <option value="未使用に近い">未使用に近い</option>
+                  <option value="目立った傷や汚れなし">目立った傷や汚れなし</option>
+                  <option value="やや傷や汚れあり">やや傷や汚れあり</option>
+                  <option value="傷や汚れあり">傷や汚れあり</option>
+                  <option value="全体的に状態が悪い">全体的に状態が悪い</option>
+                </select>
+              </label>
+              <label>
+                <span>並び順</span>
+                <select id="mercariSort" name="mercariSort">
+                  <option value="おすすめ順">おすすめ順</option>
+                  <option value="新しい順">新しい順</option>
+                  <option value="価格の安い順">価格の安い順</option>
+                  <option value="価格の高い順">価格の高い順</option>
+                  <option value="いいね！順">いいね！順</option>
+                </select>
+              </label>
+            </div>
+            <label class="toggle-row" for="mercariOnSaleOnly">
+              <input id="mercariOnSaleOnly" name="mercariOnSaleOnly" type="checkbox" checked>
+              <span>販売中のみを確認したい</span>
+            </label>
+            <div class="search-keyword-box">
+              <span class="keyword-label">検索キーワード</span>
+              <strong id="mercariSearchKeyword">商品名が入るとここに表示されます</strong>
+              <p id="mercariSearchSummary" class="search-summary">検索条件がここに表示されます</p>
+            </div>
+            <div class="quick-actions">
+              <a
+                id="mercariSearchLink"
+                class="primary-button link-button"
+                href="https://jp.mercari.com/search"
+                target="_blank"
+                rel="noreferrer"
+              >メルカリで検索</a>
+              <button id="copyKeywordButton" type="button" class="ghost-button">キーワードをコピー</button>
+              <button id="copySearchMemoButton" type="button" class="ghost-button">条件メモをコピー</button>
+            </div>
+            <p class="field-hint">
+              相場はメルカリで確認して、下の「想定売価」に手入力してください。
+              状態と並び順はアプリ内で管理し、検索後にそのまま見比べやすくしています。
+            </p>
+          </div>
+        </div>
+        <div id="autoFillMessage" class="auto-fill-message">
+          楽天URLを入力して商品情報を取得すると、ここに結果が表示されます。
+        </div>
+      </section>
+
+      <section class="panel form-panel">
+        <div class="panel-heading">
+          <h2>商品条件</h2>
+          <div class="quick-actions">
+            <button id="sampleButton" type="button" class="ghost-button">サンプル入力</button>
+            <button id="resetButton" type="button" class="ghost-button">リセット</button>
+          </div>
+        </div>
+
+        <div class="field-group single">
+          <label for="itemName">商品名</label>
+          <input id="itemName" name="itemName" type="text" placeholder="例: ワイヤレスイヤホン">
+        </div>
+
+        <div class="split-section">
+          <div>
+            <div class="section-title">
+              <h3>楽天市場での仕入れ</h3>
+              <p>実質仕入れ額を計算します</p>
+            </div>
+            <div class="field-grid">
+              <label>
+                <span>商品価格</span>
+                <div class="currency-input">
+                  <input id="purchasePrice" name="purchasePrice" type="number" min="0" step="1" value="0">
+                  <span>円</span>
+                </div>
+              </label>
+              <label>
+                <span>送料</span>
+                <div class="currency-input">
+                  <input id="rakutenShipping" name="rakutenShipping" type="number" min="0" step="1" value="0">
+                  <span>円</span>
+                </div>
+              </label>
+              <label>
+                <span>クーポン値引き</span>
+                <div class="currency-input">
+                  <input id="rakutenCoupon" name="rakutenCoupon" type="number" min="0" step="1" value="0">
+                  <span>円</span>
+                </div>
+              </label>
+              <label>
+                <span>ポイント還元見込み</span>
+                <div class="currency-input">
+                  <input id="rakutenPoints" name="rakutenPoints" type="number" min="0" step="1" value="0">
+                  <span>円</span>
+                </div>
+              </label>
+              <label class="full-width">
+                <span>その他コスト</span>
+                <div class="currency-input">
+                  <input id="rakutenOtherCost" name="rakutenOtherCost" type="number" min="0" step="1" value="0">
+                  <span>円</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-title">
+              <h3>メルカリでの販売</h3>
+              <p>売れた後の手取りを計算します</p>
+            </div>
+            <div class="field-grid">
+              <label>
+                <span>想定売価</span>
+                <div class="currency-input">
+                  <input id="salePrice" name="salePrice" type="number" min="0" step="1" value="0">
+                  <span>円</span>
+                </div>
+              </label>
+              <label>
+                <span>販売手数料率</span>
+                <div class="currency-input">
+                  <input id="mercariFeeRate" name="mercariFeeRate" type="number" min="0" max="100" step="0.1" value="10">
+                  <span>%</span>
+                </div>
+              </label>
+              <label>
+                <span>発送送料</span>
+                <div class="currency-input">
+                  <input id="mercariShipping" name="mercariShipping" type="number" min="0" step="1" value="0">
+                  <span>円</span>
+                </div>
+              </label>
+              <label>
+                <span>梱包などのその他費用</span>
+                <div class="currency-input">
+                  <input id="mercariOtherCost" name="mercariOtherCost" type="number" min="0" step="1" value="0">
+                  <span>円</span>
+                </div>
+              </label>
+              <label class="full-width">
+                <span>目標利益</span>
+                <div class="currency-input">
+                  <input id="targetProfit" name="targetProfit" type="number" min="0" step="1" value="1000">
+                  <span>円</span>
+                </div>
+              </label>
+              <label class="full-width">
+                <span>目標ROI</span>
+                <div class="currency-input">
+                  <input id="targetRoi" name="targetRoi" type="number" min="0" step="0.1" value="15">
+                  <span>%</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel result-panel">
+        <div class="panel-heading">
+          <h2>判定結果</h2>
+          <button id="saveButton" type="button" class="primary-button">この条件を保存</button>
+        </div>
+
+        <div id="statusCard" class="status-card status-idle">
+          <p class="status-label">総合判定</p>
+          <strong id="statusTitle">入力待ち</strong>
+          <p id="statusMessage" class="status-message">数値を入れると利益判定が表示されます。</p>
+        </div>
+
+        <div class="metric-grid">
+          <article class="metric-card">
+            <span>見込み利益</span>
+            <strong id="profitValue">¥0</strong>
+          </article>
+          <article class="metric-card">
+            <span>ROI</span>
+            <strong id="roiValue">0.0%</strong>
+          </article>
+          <article class="metric-card">
+            <span>利益率</span>
+            <strong id="marginValue">0.0%</strong>
+          </article>
+          <article class="metric-card">
+            <span>メルカリ手取り</span>
+            <strong id="netSalesValue">¥0</strong>
+          </article>
+        </div>
+
+        <div class="result-columns">
+          <div class="breakdown-card">
+            <h3>内訳</h3>
+            <dl id="breakdownList" class="breakdown-list"></dl>
+          </div>
+          <div class="breakdown-card">
+            <h3>判断の目安</h3>
+            <dl id="insightList" class="breakdown-list"></dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel history-panel">
+        <div class="panel-heading">
+          <h2>保存した候補</h2>
+          <button id="clearHistoryButton" type="button" class="ghost-button">履歴を消去</button>
+        </div>
+        <div id="historyEmpty" class="empty-state">まだ保存された候補はありません。</div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
